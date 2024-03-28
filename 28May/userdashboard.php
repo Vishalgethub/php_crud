@@ -93,7 +93,7 @@ if (isset($_POST['addtask'])) {
     $res = mysqli_query($conn, $sql);
 
     if ($res) {
-        header('Location: userdashboard.php');
+        header('Location: dashboard.php');
     }
 }
 
@@ -118,7 +118,7 @@ if (isset($_POST['deletetask'])) {
     $res = mysqli_query($conn, $sql);
 
     if ($res) {
-        header('Location: userdashboard.php');
+        header('Location: dashboard.php');
     }
 }
 
@@ -132,34 +132,30 @@ if (isset($_POST['adduser'])) {
     $phone = $_POST['phone'];
     $role = $_POST['role'];
 
-    $sql = "SELECT email FROM `users`";
-    $res = mysqli_query($conn, $sql);
+    $sql1 = "SELECT * FROM `users` WHERE email = '$email';";
+    $res1 = mysqli_query($conn, $sql1);
 
-    while($row = mysqli_fetch_assoc($res)){
-        $emailVerify = $row['email'];
+    $row = $res1->fetch_assoc();
 
-        if ($emailVerify === $email) {
-            $userAllreadyRegistered = "User is allready added";
-        } else {
-            if (empty($userId)) {
-                $sql = "INSERT INTO `users`(`name`, `email`, `password`, `phone`, `role`) 
+    if(is_array($row) && count($row)>0) {
+        $userAllreadyRegistered = "User is allready added";
+
+    } else {
+
+        if (empty($userId)) {
+            $sql = "INSERT INTO `users`(`name`, `email`, `password`, `phone`, `role`) 
                 VALUES ('$name','$email','$password','$phone','$role')";
-            } else {
-                $sql = "UPDATE `users` SET `name`='$name',`email`='$email',
+        } else {
+            $sql = "UPDATE `users` SET `name`='$name',`email`='$email',
             `password`='$password',`phone`='$phone',`role`='$role' WHERE id = $userId";
-            }
-            $res = mysqli_query($conn, $sql);
-    
-            if ($res) {
-                header('Location: userdashboard.php');
-            }
+        }
+
+        $res = mysqli_query($conn, $sql);
+
+        if ($res) {
+            header('Location: dashboard.php');
         }
     }
-    
-
-
-
-   
 }
 
 if (isset($_POST['edituser'])) {
@@ -186,7 +182,7 @@ if (isset($_POST['deleteuser'])) {
     $res = mysqli_query($conn, $sql);
 
     if ($res) {
-        header('Location: userdashboard.php');
+        header('Location: dashboard.php');
     }
 }
 
@@ -402,18 +398,48 @@ if (isset($_POST['deleteuser'])) {
                                     <?php
 
                                     $userId = $id1;
-                                    $sql = "SELECT * FROM `task` WHERE user_id = '$id1'";
+                                    if($_SESSION['role'] == 1){
+                                        $sql = "SELECT * FROM `task`";
+                                    } else if($_SESSION['role'] == 2) {
+                                        $sql = "SELECT * FROM `task` WHERE user_id = '$id1'";
+                                    }
                                     $res = mysqli_query($conn, $sql);
-                                    $row = mysqli_fetch_assoc($res);
+                                   
                                     ?>
-                                    <tr class="">
+
+                                    <?php 
+
+                                    if($_SESSION['role'] == 1){
+                                    
+                                        while($row = mysqli_fetch_assoc($res)){
+                                            ?>
+                                            <tr class="">
+                                            <td scope="row"><?= $row['id']; ?></td>
+                                            <td><?= $row['name']; ?></td>
+                                            <td><?= $row['user_id']; ?></td>
+                                            <td><?= $row['status']; ?></td>
+                                            <td><?= $row['machine']; ?></td>
+                                        </tr>
+                                        <?php
+                                        }
+
+                                    } else if ($_SESSION['role'] == 2){
+                                        $row = mysqli_fetch_assoc($res);
+
+                                        ?>
+                                        <tr class="">
                                         <td scope="row"><?= $row['id']; ?></td>
                                         <td><?= $row['name']; ?></td>
                                         <td><?= $row['user_id']; ?></td>
                                         <td><?= $row['status']; ?></td>
                                         <td><?= $row['machine']; ?></td>
                                     </tr>
-                                    <?php ?>
+                                    <?php
+
+
+                                    }
+                                    
+                                    ?>
                                 </tbody>
                             </table>
                         </div>
